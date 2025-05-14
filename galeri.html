@@ -1,0 +1,154 @@
+<style>
+  .kolase-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 20px;
+  }
+
+  .kolase-left,
+  .kolase-right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .kolase-item {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .kolase-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  .kolase-item:hover img {
+    transform: scale(1.05);
+  }
+
+  .kolase-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    color: #fff;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+  }
+
+  .kolase-item:hover .kolase-overlay {
+    opacity: 1;
+  }
+
+  .kolase-left .kolase-item,
+  .kolase-right .kolase-item {
+    width: 200px;
+    height: 200px;
+  }
+
+  .kolase-center {
+    width: 410px;
+    height: 410px;
+    position: relative;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 768px) {
+    .kolase-container {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .kolase-left,
+    .kolase-right {
+      flex-direction: row;
+      gap: 10px;
+    }
+
+    .kolase-left .kolase-item,
+    .kolase-right .kolase-item {
+      width: 140px;
+      height: 140px;
+    }
+
+    .kolase-center {
+      width: 300px;
+      height: 300px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .kolase-left .kolase-item,
+    .kolase-right .kolase-item {
+      width: 120px;
+      height: 120px;
+    }
+
+    .kolase-center {
+      width: 260px;
+      height: 260px;
+    }
+  }
+</style>
+
+<div class="kolase-container" id="kolase-gallery">
+  <div class="kolase-left"></div>
+  <div class="kolase-center"></div>
+  <div class="kolase-right"></div>
+</div>
+
+<script>
+  const blogURL = location.origin;
+  const label = "Aktivitas"; // ganti sesuai label blog
+  const maxPosts = 5;
+
+  fetch(`${blogURL}/feeds/posts/default/-/${label}?alt=json&max-results=${maxPosts}`)
+    .then(res => res.json())
+    .then(data => {
+      const entries = data.feed.entry || [];
+      const left = document.querySelector(".kolase-left");
+      const right = document.querySelector(".kolase-right");
+      const center = document.querySelector(".kolase-center");
+
+      entries.forEach((entry, i) => {
+        const img = entry.media$thumbnail?.url.replace("s72-c", "s800") || "";
+        const link = entry.link.find(l => l.rel === "alternate").href;
+
+        const div = document.createElement("a");
+        div.href = link;
+        div.className = "kolase-item";
+        div.target = "_blank";
+        div.innerHTML = `
+          <img src="${img}" alt="Image ${i + 1}">
+          <div class="kolase-overlay">🔗</div>
+        `;
+
+        if (i === 2) {
+          div.classList.add("kolase-center");
+          center.appendChild(div);
+        } else if (i < 2) {
+          left.appendChild(div);
+        } else {
+          right.appendChild(div);
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Galeri gagal dimuat:", err);
+      document.getElementById("kolase-gallery").innerHTML =
+        "<p style='text-align:center;color:#999;'>Galeri gagal dimuat.</p>";
+    });
+</script>
